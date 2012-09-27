@@ -14,9 +14,9 @@ def verify_signature(request, key):
     if 'application/json' in request.META.get('CONTENT_TYPE'):
         try:
             data = json.loads(request.body)
-            uuid = data['uuid']
+            name = data['name']
             signature = data['signature']
-            real_signature = hmac.new(key, uuid, hashlib.sha1).hexdigest()
+            real_signature = hmac.new(key, name, hashlib.sha1).hexdigest()
             if real_signature == signature:
                 return True
         except (ValueError, TypeError, AttributeError, KeyError):
@@ -40,7 +40,7 @@ def error(message):
 
 
 SIGNED_METHODS = ['POST', 'PUT',]
-REQUIRED_FIELDS = ['uuid', 'name', 'address', 'port']
+REQUIRED_FIELDS = ['name', 'address', 'port']
 
 @csrf_exempt
 def main(request, *args, **kwargs):
@@ -65,7 +65,7 @@ def main(request, *args, **kwargs):
 
     # Other views
     elif request.method in SIGNED_METHODS:
-        # Verify its a JSON request and the UUID HMAC-SHA1 is valid against master key
+        # Verify its a JSON request and the HMAC-SHA1 signature is valid against master key
         if not verify_signature(request, master_key):
             return HttpResponseBadRequest()
 
@@ -75,10 +75,9 @@ def main(request, *args, **kwargs):
         if request.method == 'POST':
             if not all(map(lambda field: field in data.keys(), REQUIRED_FIELDS)):
                 return error("Must include all fields: %s" % ', '.join(REQUIRED_FIELDS))
-            if Server.objects.filter(uuid=data.get('uuid')).count() > 0:
-                return error("Server with that UUID already exists.")
+            if Server.objects.filter(name=data.get('name')).count() > 0:
+                return error("Server with that name already exists.")
             Server.objects.create(
-                uuid=data.get('uuid'),
                 name=data.get('name'),
                 port=data.get('port'),
                 address=request.META.get('REMOTE_ADDR'),
@@ -88,7 +87,7 @@ def main(request, *args, **kwargs):
         # Heartbeat server
         if request.method == 'PUT':
             try:
-                server = Server.objects.get(uuid=data.get('uuid'))
+                server = Server.objects.get(name=data.get('name'))
                 server.timestamp = datetime.now()
                 server.save()
                 return success("Accepted heartbeat for server.")

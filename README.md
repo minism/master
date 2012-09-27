@@ -10,7 +10,7 @@ This can deploy to heroku out of the box.
 
 ``MASTER_KEY`` is a shared-secret key that you must generate and set in django settings.py.  It should also be baked into your game client.
 
-**POST** and **PUT** method request bodies must always contain a field ``signature``, which is an HMAC SHA1 Hex Digest of the ``uuid`` field also sent with the request, using ``MASTER_KEY`` as the key.
+**POST** and **PUT** method request bodies must always contain a field ``signature``, which is an HMAC SHA1 Hex Digest of the ``name`` field also sent with the request, using ``MASTER_KEY`` as the key.
 
 
 
@@ -26,10 +26,9 @@ Returns a JSON array of alive game servers.
 Register a new game server.  Request body should be: 
 
     {
-        "name": Name of server,
-        "port": Port of server,
-        "uuid": A 36-character-max UUID that you generate,
-        "signature": The HMAC-SHA1 hex digest of MASTER_KEY+uuid,
+        "name": Name of game server (must be unique),
+        "port": Port of game server,
+        "signature": The HMAC-SHA1 hex digest of MASTER_KEY+name,
     }
     
 ``PUT / (Content-Type: application/json)``
@@ -37,8 +36,8 @@ Register a new game server.  Request body should be:
 Update the heartbeat for a game server.  Request body should be: 
 
     {
-        "uuid": The UUID of the game server,
-        "signature": The HMAC-SHA1 hex digest of MASTER_KEY+uuid,
+        "name": The name of the game server,
+        "signature": The HMAC-SHA1 hex digest of MASTER_KEY+name,
     }
 
 # Deploying
