@@ -40,7 +40,7 @@ def error(message):
 
 
 SIGNED_METHODS = ['POST', 'PUT',]
-REQUIRED_FIELDS = ['name', 'address', 'port']
+REQUIRED_FIELDS = ['name', 'port']
 
 @csrf_exempt
 def main(request, *args, **kwargs):
