@@ -10,17 +10,24 @@ from django.forms.models import model_to_dict
 
 from mserver.models import Server
 
-def verify_signature(request, key):
+def verify_json(request, key):
     if 'application/json' in request.META.get('CONTENT_TYPE'):
         try:
             data = json.loads(request.body)
-            name = data['name']
-            signature = data['signature']
-            real_signature = hmac.new(key, name, hashlib.sha1).hexdigest()
-            if real_signature == signature:
-                return True
-        except (ValueError, TypeError, AttributeError, KeyError):
+            return True
+        except ValueError:
             return False
+    return False
+
+def verify_signature(data, key):
+    try:
+        name = data['name']
+        signature = data['signature']
+        real_signature = hmac.new(key, name, hashlib.sha1).hexdigest()
+        if real_signature == signature:
+            return True
+    except (TypeError, AttributeError, KeyError):
+        return False
     return False
 
 def json_response(data):
@@ -44,9 +51,10 @@ REQUIRED_FIELDS = ['name', 'port']
 
 @csrf_exempt
 def main(request, *args, **kwargs):
-    # Get master key from settings
+    # Get settings
     master_key = getattr(settings, 'MASTER_KEY')
     timeout = getattr(settings, 'HEARTBEAT_TIMEOUT')
+    require_signature = getattr(settings, 'REQUIRE_SIGNATURE')
 
     # Prune server list
     for server in Server.objects.all():
@@ -65,11 +73,15 @@ def main(request, *args, **kwargs):
 
     # Other views
     elif request.method in SIGNED_METHODS:
-        # Verify its a JSON request and the HMAC-SHA1 signature is valid against master key
-        if not verify_signature(request, master_key):
-            return HttpResponseBadRequest()
+        # Verify its a valid JSON request
+        if not verify_json(request):
+            return HttpResponseBadRequest("Invalid JSON.")
 
         data = json.loads(request.body)
+
+        # Verify the HMAC-SHA1 signature is valid against master key
+        if require_signature and not verify_signature(data, master_key):
+            return HttpResponseBadRequest()
 
         # Register a new server
         if request.method == 'POST':
