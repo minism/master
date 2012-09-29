@@ -8,8 +8,8 @@ DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
 # Set these in heroku config
 MASTER_KEY          = os.getenv('MASTER_KEY')
 HEARTBEAT_TIMEOUT   = os.getenv('HEARTBEAT_TIMEOUT', 70)
-REQUIRE_SIGNATURE   = os.getenv('REQUIRE_SIGNATURE', True)
-DEBUG		        = os.getenv('DEBUG', False)
+DISABLE_SIGNATURE   = bool(os.getenv('REQUIRE_SIGNATURE', False))
+DEBUG		        = bool(os.getenv('DEBUG', False))
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (

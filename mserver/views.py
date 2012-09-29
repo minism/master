@@ -54,7 +54,7 @@ def main(request, *args, **kwargs):
     # Get settings
     master_key = getattr(settings, 'MASTER_KEY')
     timeout = getattr(settings, 'HEARTBEAT_TIMEOUT')
-    require_signature = getattr(settings, 'REQUIRE_SIGNATURE')
+    disable_signature = getattr(settings, 'DISABLE_SIGNATURE')
 
     # Prune server list
     for server in Server.objects.all():
@@ -80,7 +80,7 @@ def main(request, *args, **kwargs):
         data = json.loads(request.body)
 
         # Verify the HMAC-SHA1 signature is valid against master key
-        if require_signature and not verify_signature(data, master_key):
+        if not disable_signature and not verify_signature(data, master_key):
             return HttpResponseBadRequest()
 
         # Register a new server
