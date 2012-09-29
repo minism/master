@@ -10,7 +10,7 @@ from django.forms.models import model_to_dict
 
 from mserver.models import Server
 
-def verify_json(request, key):
+def verify_json(request):
     if 'application/json' in request.META.get('CONTENT_TYPE'):
         try:
             data = json.loads(request.body)
