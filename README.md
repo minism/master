@@ -76,3 +76,7 @@ Done!
 You can set the heartbeat timeout with:
 
     heroku config:add HEARTBEAT_TIMEOUT=<seconds>
+    
+You can disable requiring signatures in requests with:
+
+    heroku config:add DISABLE_SIGNATURE=True
